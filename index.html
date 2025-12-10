@@ -1,105 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Photopea no ADs</title>
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="application-name" content="Photopea no ADs">
-    <meta name="apple-mobile-web-app-title" content="Photopea no ADs">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <link rel="manifest" href="/photopea-iframe/manifest.json">
-    <style>
-        body, html {
-            overflow: hidden;
-            height: 100%;
-            width: 100%;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Photopea</title>
+  <link rel="favicon" type="image/png" href="image-256.png">
+  <!-- Link to the web app manifest -->
+  <link rel="manifest" href="manifest.json">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+  </style>
 </head>
 <body>
-    <div style="width:100%; height:100%; overflow: hidden; position: absolute; top: 0; left: 0;">
-        <!-- Added id for iframe reference -->
-        <iframe id="photopeaFrame" src="https://photopea.com/" style="width: 100%; height: 100%; border: none;" allowfullscreen></iframe>
-    </div>
-
-    <script>
-    // The bookmarklet code, as a string (without the "javascript:" prefix)
-    const bookmarkletCode = `(function(){
-      const s=document.createElement('style');
-      s.textContent='.app > div:nth-child(2){visibility:hidden;}';
-      document.head.appendChild(s);
-      function addResizeCanvasListener(){
-        document.addEventListener('resizecanvas',()=>{
-          const app=document.querySelector('.app')?.firstElementChild;
-          const appWidth=app?.offsetWidth||0;
-          const pageWidth=document.documentElement.clientWidth;
-          const adsWidth=window.screen.width<1500?180:320;
-          if(!app||pageWidth-appWidth===0)return;
-          try{ window.innerWidth=pageWidth+adsWidth; }catch(e){ console.warn('window.innerWidth cannot be modified',e); }
-          try{
-            Object.defineProperty(window,'visualViewport',{
-              configurable:true,
-              value:new Proxy(window.visualViewport,{ get(t,prop){ return prop==='width'?pageWidth+adsWidth:t[prop]; } })
-            });
-          }catch(e){ console.warn('visualViewport override failed',e); }
+  <iframe id="photopeaFrame" src="https://www.photopea.com/" allowfullscreen></iframe>
+  <script>
+function balls() {
+    setInterval(() => {
+        Object.defineProperty(window, 'innerWidth', {
+            get() {
+                return document.documentElement.offsetWidth + 320;
+            },
+            configurable: true
         });
-      }
-      document.documentElement.setAttribute('onreset',`(${addResizeCanvasListener})()`);
-      document.documentElement.dispatchEvent(new CustomEvent('reset'));
-      document.documentElement.removeAttribute('onreset');
-      function resize(e={}){
-        if(!e.skip){
-          document.dispatchEvent(new CustomEvent('resizecanvas'));
-          const re=new Event('resize'); re.skip=true; window.dispatchEvent(re);
-        }
-      }
-      let debounce;
-      window.addEventListener('resize',e=>{ clearTimeout(debounce); debounce=setTimeout(()=>resize(e),100); });
-      if(document.readyState==='complete'){ resize(); } else { window.onload=()=>resize(); }
-      const observer=new MutationObserver((mutations,obs)=>{
-        for(const m of mutations){
-          for(const node of m.addedNodes){
-            if(node.nodeType===Node.ELEMENT_NODE&&node.classList.contains('app')){
-              console.log('app added'); resize(); obs.disconnect(); break;
-            }
-          }
-        }
-      });
-      observer.observe(document.body,{childList:true,subtree:true});
-    })();`;
+    }, 250);
+}
 
-    // Inject bookmarklet 45 times at 200ms intervals after iframe loads
-    const iframe = document.getElementById('photopeaFrame');
-    iframe.addEventListener('load', () => {
-      // Give Photopea a moment to initialize
-      setTimeout(() => {
-        try {
-          let count = 0;
-          const maxRuns = 45;
-          const interval = setInterval(() => {
-            if (count >= maxRuns) {
-              clearInterval(interval);
-              console.log(`Injected bookmarklet ${maxRuns} times`);
-              return;
-            }
-            iframe.contentWindow.eval(bookmarkletCode);
-            count++;
-          }, 200);
-        } catch (e) {
-          console.error('Error injecting bookmarklet code:', e);
-        }
-      }, 1000);
-    });
-
-    // Register service worker for offline support
-    window.addEventListener('load', function() {
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/photopea-iframe/service-worker.js')
-          .then(reg => console.log('Service Worker registered', reg))
-          .catch(err => console.error('Service Worker registration failed', err));
-      }
-    });
-    </script>
+balls();
+</script>
 </body>
 </html>
