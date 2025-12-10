@@ -24,15 +24,18 @@
 <body>
   <iframe id="photopeaFrame" src="https://www.photopea.com/" allowfullscreen></iframe>
   <script>
-    function balls(){
-      setInterval(() => {
+function balls() {
+    setInterval(() => {
         Object.defineProperty(window, 'innerWidth', {
             get() {
                 return document.documentElement.offsetWidth + 320;
-            }
+            },
+            configurable: true
         });
     }, 250);
-    };
-  </script>
+}
+
+balls();
+</script>
 </body>
 </html>
